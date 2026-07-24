@@ -1,10 +1,16 @@
 const express = require('express');
+const EventEmitter = require('events');
 const { fontesPublicas, consultarFonte, listarTodas } = require('../services/sources');
 const { cadastrar, listar, marcarEnviados, cancelar } = require('../services/subscriptions');
 const { configurado, enviarEditais, status: whatsappStatus } = require('../services/whatsapp');
 
 const router = express.Router();
+const atualizacoes = new EventEmitter();
+let ultimaAssinatura = null;
 
+function assinaturaDasVagas(vagas) {
+  return JSON.stringify(vagas.map((vaga) => ({ uid: vaga.uid, prazo: vaga.dataFinalInscricao, situacao: vaga.situacao, resultado: vaga.resultadoUrl, anexos: vaga.anexos?.map((anexo) => anexo.url) }))); 
+}
 function filtrarVagas(vagas, subscription) {
   return vagas.filter((vaga) =>
     (subscription.fontes || ['imd']).includes(vaga.fonteId) &&
@@ -23,6 +29,10 @@ async function notificarAssinatura(subscription, vagas) {
 
 async function atualizarNotificacoes() {
   const vagas = await listarTodas({ force: true });
+  const assinatura = assinaturaDasVagas(vagas);
+  const mudou = ultimaAssinatura !== null && assinatura !== ultimaAssinatura;
+  ultimaAssinatura = assinatura;
+  if (mudou) atualizacoes.emit('vagas-atualizadas', { atualizadoEm: new Date().toISOString() });
   const subscriptions = await listar();
   const results = [];
   for (const subscription of subscriptions.filter((item) => item.ativo && item.consentimento)) {
@@ -37,6 +47,16 @@ router.get('/status', (req, res) => {
 });
 
 router.get('/fontes', (req, res) => res.json({ fontes: fontesPublicas() }));
+
+router.get('/atualizacoes', (req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache, no-transform', Connection: 'keep-alive' });
+  res.write(`event: conectado\ndata: ${JSON.stringify({ conectadoEm: new Date().toISOString() })}\n\n`);
+  const onUpdate = (payload) => res.write(`event: vagas-atualizadas\ndata: ${JSON.stringify(payload)}\n\n`);
+  atualizacoes.on('vagas-atualizadas', onUpdate);
+  const heartbeat = setInterval(() => res.write(': ping\n\n'), 25000);
+  req.on('close', () => { clearInterval(heartbeat); atualizacoes.off('vagas-atualizadas', onUpdate); });
+});
+
 
 router.get('/vagas', async (req, res, next) => {
   try {
@@ -84,6 +104,8 @@ router.use((error, req, res, next) => {
 });
 
 router.atualizarNotificacoes = atualizarNotificacoes;
+router.atualizacoes = atualizacoes;
 module.exports = router;
+
 
 

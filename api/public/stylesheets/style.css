@@ -22,3 +22,51 @@
 .cards { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }.card { padding:24px; }.card h3 { font-size:23px; margin:16px 0 18px; }.meta-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }.meta-grid dd { font-size:14px; }.card-bottom { display:block; }.card-bottom small { display:block; max-width:100%; margin-bottom:12px; }.card-links { justify-content:flex-start; }.requirements { font-size:14px; }.periodo-vaga { font-size:13px; }
 @media (max-width:800px) { .filter-panel { grid-template-columns:1fr; }.cards { grid-template-columns:1fr; } } @media (max-width:500px) { .filter-toolbar { align-items:flex-start; flex-direction:column; }.filter-section { flex-direction:column; gap:10px; }.filter-actions { width:100%; }.filter-actions button { flex:1; } }
 .filter-toggle { display:inline-flex; align-items:center; gap:5px; transition:background .18s,color .18s,border-color .18s; }.filter-arrow { display:inline-block; font-size:18px; line-height:12px; transition:transform .18s; }.filter-toggle.is-open { background:var(--lime); color:var(--ink); border:1px solid var(--green); }.filter-toggle.is-open .filter-arrow { transform:rotate(180deg); }.institution-filter { display:flex; flex-wrap:wrap; gap:10px 14px; }.institution-filter > span { width:100%; color:var(--muted); font:700 11px "DM Mono",monospace; letter-spacing:.08em; }.institution-filter label { white-space:nowrap; }
+/* Ajuste final de legibilidade: filtros e cards compactos */
+.filter-toolbar { justify-content:space-between; padding:12px 0; margin:20px 0 10px; border-bottom:1px solid var(--line); }
+.filter-toggle { display:inline-flex; align-items:center; gap:8px; padding:10px 15px; border:1px solid var(--green); box-shadow:none; }
+.filter-toggle #filter-count { display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 5px; margin:0; border-radius:99px; background:var(--lime); color:var(--ink); font-size:11px; }
+.filter-toggle .filter-arrow { display:inline-block; min-width:0; width:auto; height:auto; margin:0; padding:0; border-radius:0; background:transparent; color:currentColor; font-size:18px; line-height:1; }
+.filter-panel { grid-template-columns:repeat(2, minmax(0, 1fr)); align-items:start; gap:14px; padding:16px; border-radius:8px; box-shadow:0 8px 20px rgba(16,34,29,.05); }
+.filter-section { display:flex; align-content:flex-start; gap:9px; padding:14px; background:#f6f7f2; border:1px solid #e3e6db; border-radius:6px; }
+.filter-section label { display:inline-flex; align-items:center; gap:6px; margin:0; padding:6px 0; line-height:1.25; }
+.filter-section input[type=checkbox], .filter-section input[type=radio] { accent-color:var(--green); }
+.institution-filter { width:100%; gap:7px 12px; margin-top:3px; padding-top:10px; border-top:1px solid #dfe4d9; }
+.value-filter { width:100%; padding-top:8px!important; border-top:1px solid #dfe4d9; }.value-filter input { width:118px; margin-left:auto; background:#fff; }
+.filter-actions { grid-column:1 / -1; justify-content:flex-end; padding-top:4px; }.filter-actions button { min-height:40px; }
+.cards { grid-template-columns:repeat(2, minmax(0, 1fr)); align-items:stretch; gap:18px; margin-top:20px; }
+.card { height:500px; min-width:0; overflow:hidden; padding:22px; border-radius:8px; box-shadow:0 3px 12px rgba(16,34,29,.04); }
+.card h3 { display:-webkit-box; min-height:74px; max-height:74px; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:3; font-size:23px; line-height:1.08; margin:15px 0; }
+.badges { min-height:25px; overflow:hidden; }.badges span { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.meta-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); min-height:120px; margin:0; padding:13px 0; overflow:hidden; }.meta-grid div { min-width:0; }.meta-grid dd { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow-wrap:anywhere; }
+.periodo-vaga { display:-webkit-box; min-height:36px; max-height:36px; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:13px 0 0; }
+.requirements { display:-webkit-box; min-height:80px; max-height:80px; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:4; margin:13px 0; line-height:1.42; }
+.card-bottom { margin-top:auto; min-height:64px; overflow:hidden; }.card-bottom small { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:1; margin-bottom:9px; }.card-links { max-height:22px; overflow:hidden; flex-wrap:nowrap; white-space:nowrap; }.card-links > * { overflow:hidden; text-overflow:ellipsis; }
+@media (max-width:800px) { .filter-panel { grid-template-columns:1fr; }.filter-actions { grid-column:auto; }.card { height:490px; } }
+@media (max-width:560px) { .filter-toolbar { align-items:flex-start; flex-direction:column; }.cards { grid-template-columns:1fr; }.card { height:470px; }.filter-section label { width:100%; }.institution-filter label { width:auto; } }
+/* Cards com altura natural: nenhum dado previsto é ocultado */
+.cards { align-items:start; }
+.card { height:auto; min-height:0; overflow:visible; }
+.card h3 { display:block; min-height:0; max-height:none; overflow:visible; -webkit-line-clamp:unset; }
+.badges { min-height:0; overflow:visible; }.badges span { max-width:none; overflow:visible; text-overflow:clip; white-space:normal; }
+.meta-grid { min-height:0; overflow:visible; }.meta-grid dd { display:block; overflow:visible; -webkit-line-clamp:unset; overflow-wrap:anywhere; }
+.periodo-vaga { display:block; min-height:0; max-height:none; overflow:visible; -webkit-line-clamp:unset; }
+.requirements { display:block; min-height:0; max-height:none; overflow:visible; -webkit-line-clamp:unset; }
+.card-bottom { min-height:0; overflow:visible; }.card-bottom small { display:block; overflow:visible; -webkit-line-clamp:unset; }.card-links { max-height:none; overflow:visible; flex-wrap:wrap; white-space:normal; }.card-links > * { overflow-wrap:anywhere; text-overflow:clip; }
+@media (max-width:800px) { .card { height:auto; } } @media (max-width:560px) { .card { height:auto; } }
+/* Grade uniforme: largura definida e cards irmãos com mesma altura por linha */
+.cards { grid-template-columns:repeat(2, minmax(0, 1fr)); align-items:stretch; }
+.card { width:100%; height:100%; }
+@media (max-width:560px) { .cards { grid-template-columns:1fr; }.card { width:100%; height:auto; } }
+/* Proteção contra texto sem espaços vindo de PDFs e formulários */
+.card, .card * { min-width:0; max-width:100%; }
+.card .requirements, .card .periodo-vaga, .card .meta-grid dd, .card .card-bottom { overflow-wrap:anywhere; word-break:break-word; white-space:normal; }
+.card .requirements { word-break:break-all; }
+/* Botão de filtros: controle compacto e estados claros */
+.filter-toolbar { min-height:54px; align-items:center; }
+.filter-toggle { margin:0; min-height:42px; padding:0 14px 0 16px; border:1px solid var(--green); border-radius:999px; background:#fff; color:var(--green); font-size:14px; letter-spacing:0; box-shadow:0 2px 8px rgba(14,75,63,.08); }
+.filter-toggle:hover { background:#edf5f0; }.filter-toggle:focus-visible { outline:3px solid rgba(14,75,63,.25); outline-offset:2px; }
+.filter-toggle #filter-count { min-width:22px; height:22px; margin:0 0 0 2px; background:var(--green); color:#fff; font:700 11px 'DM Mono',monospace; }
+.filter-toggle .filter-arrow { margin-left:1px; color:var(--green); font-size:19px; transform:translateY(-1px); }
+.filter-toggle.is-open { background:var(--green); color:#fff; border-color:var(--green); box-shadow:none; }.filter-toggle.is-open #filter-count { background:var(--lime); color:var(--ink); }.filter-toggle.is-open .filter-arrow { color:#fff; transform:translateY(-1px) rotate(180deg); }
+.filter-summary { font-size:13px; }

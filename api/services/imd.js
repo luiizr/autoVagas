@@ -59,10 +59,12 @@ function extrairDataFinalInscricao(texto) {
   return null;
 }
 function extrairInscricao(texto) {
-  const form = texto.match(/https?:\/\/[^\s)]+(?:forms\.gle|docs\.google\.com\/forms|selecao\.imd\.ufrn\.br)[^\s)]*/i)?.[0];
-  const email = texto.match(/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/)?.[0];
+  const form = texto.match(/https?:\/\/(?:forms\.gle\/|docs\.google\.com\/forms\/|selecao\.imd\.ufrn\.br\/?)[^\s)<]*/i)?.[0]?.replace(/[.,;:]+$/, '');
   if (form) return { formaInscricao: 'formulário online', linkInscricao: form, emailInscricao: null };
-  if (email) return { formaInscricao: 'e-mail', linkInscricao: null, emailInscricao: email };
+
+  const instrucaoEmail = /(?:inscri[cç](?:[aã]o|[õo]es?)|envi(?:o|ar)|encaminh(?:ar|amento))[^.!?]{0,220}?(?:por|via|atrav[eé]s\s+de)?\s*(?:correio\s+eletr[oô]nico|e-?mail)[^\w@]{0,40}([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})/i.exec(texto)
+    || /(?:correio\s+eletr[oô]nico|e-?mail)[^\w@]{0,40}([\w.+-]+@[\w.-]+\.[A-Za-z]{2,})[^.!?]{0,180}(?:inscri[cç](?:[aã]o|[õo]es?)|document)/i.exec(texto);
+  if (instrucaoEmail) return { formaInscricao: 'e-mail', linkInscricao: null, emailInscricao: instrucaoEmail[1] };
   return { formaInscricao: 'consulte o edital', linkInscricao: null, emailInscricao: null };
 }
 function extrairValor(texto) { return texto.match(/R\$\s*[\d.]+(?:,\d{2})?/i)?.[0]?.replace(/\s+/g, ' ') || null; }
@@ -96,6 +98,11 @@ function identificarResultadoComLista(anexos) {
   }
   return null;
 }
+function extrairExclusividadeUfrn(texto) {
+  const campoExplicito = /vaga\s+exclusiva\s+para\s+(?:pessoas?|discentes?|estudantes?)(?:\s+da)?\s+UFRN\s*[:\-]?\s*(sim|n[aã]o)/i.exec(texto);
+  if (campoExplicito) return /^sim$/i.test(campoExplicito[1]);
+  return /exclusiv[oa][^.!?]{0,160}(?:UFRN|Universidade Federal do Rio Grande do Norte)|(?:alun[oa]s?|discentes?)\s+(?:regularmente\s+)?(?:matriculad[oa]s?\s+)?(?:na|no)\s+UFRN/i.test(texto);
+}
 async function textoDoPdf(anexo) {
   if (!/\.pdf(?:$|\?)/i.test(anexo.url) && !/downloadPorNome/i.test(anexo.url)) return '';
   try { const buffer = await buscar(anexo.url, true); if (buffer.length > 8 * 1024 * 1024) return ''; return String((await pdfParse(buffer)).text || '').replace(/\s+/g, ' ').trim().slice(0, 30000); } catch { return ''; }
@@ -115,7 +122,7 @@ async function detalhar(item) {
     : (resultadoAnexo ? resultadoAnexo.situacao : 'prazo_a_confirmar');
   const inscricao = extrairInscricao(textoVerdade);
   const requisitos = trecho(textoVerdade, /(?:dos\s+)?requisitos|perfil\s+(?:do\s+)?candidat|poder[aã]o\s+se\s+candidatar|para\s+participar/i);
-  const exclusivaUfrn = /exclusiv[oa][^.!?]{0,160}(?:UFRN|Universidade Federal do Rio Grande do Norte)|(?:alun[oa]s?|discentes?)\s+(?:regularmente\s+)?(?:matriculad[oa]s?\s+)?(?:na|no)\s+UFRN/i.test(textoVerdade);
+  const exclusivaUfrn = extrairExclusividadeUfrn(textoVerdade);
   const ehGraduacao = /gradu[aã]c[aã]o|graduando|gradua[cç][aã]o/i.test(`${item.resumo} ${textoVerdade}`);
   return { ...item, prazo: dataFinalInscricao, dataFinalInscricao, valorVaga: extrairValor(textoVerdade), periodoVaga: extrairPeriodoVaga(textoVerdade), processoSeletivo: extrairProcesso(textoVerdade, item.titulo), periodo: textoPagina.match(/Per[ií]odo\s+do\s+Processo\s*:\s*([0-3]?\d\/\d{2}\/\d{4}\s*-\s*[0-3]?\d\/\d{2}\/\d{4})/i)?.[1] || null, ehGraduacao, exclusivaUfrn, requisitos: requisitos || 'Os requisitos não foram identificados automaticamente; consulte o anexo oficial.', anexos: anexosComTexto.map(({ texto, ...anexo }) => anexo), anexoPrincipal: anexoPrincipal ? { nome: anexoPrincipal.nome, url: anexoPrincipal.url } : null, resultadoUrl: resultadoAnexo?.url || null, situacao, fonteAnexo: anexoPrincipal ? `anexo principal: ${anexoPrincipal.nome}` : 'página pública do edital (sem anexo legível)', ...inscricao, atualizadoEm: new Date().toISOString(), notificacaoId: `${item.id}:${situacao}:${resultadoAnexo?.url || dataFinalInscricao || 'sem-data'}` };
 }
@@ -127,6 +134,10 @@ async function listarEditais({ force = false } = {}) {
   cache = { at: Date.now(), data }; return data;
 }
 module.exports = { listarEditais, EDITAIS_URL };
+
+
+
+
 
 
 
