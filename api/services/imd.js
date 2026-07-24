@@ -107,6 +107,60 @@ async function textoDoPdf(anexo) {
   if (!/\.pdf(?:$|\?)/i.test(anexo.url) && !/downloadPorNome/i.test(anexo.url)) return '';
   try { const buffer = await buscar(anexo.url, true); if (buffer.length > 8 * 1024 * 1024) return ''; return String((await pdfParse(buffer)).text || '').replace(/\s+/g, ' ').trim().slice(0, 30000); } catch { return ''; }
 }
+function textoEntre(texto, inicio, fim) {
+  const start = texto.search(inicio);
+  if (start < 0) return null;
+  const trechoInicial = texto.slice(start).replace(inicio, '').trim();
+  const end = trechoInicial.search(fim);
+  return limparTrechoPdf(end >= 0 ? trechoInicial.slice(0, end) : trechoInicial);
+}
+function extrairDetalhesDaVaga(texto) {
+  const numeroVagas = /n[uú]mero\s+de\s+vagas\s+(\d+)/i.exec(texto)?.[1] || null;
+  const cadastroReserva = /cadastro\s+de\s+reserva\s+(sim|n[aã]o)/i.exec(texto)?.[1] || null;
+  const cargaHoraria = /carga\s+hor[aá]ria\s+semanal\s+([^\s]+(?:\s*horas?)?)/i.exec(texto)?.[1] || null;
+  const turno = textoEntre(texto, /turno\s+de\s+trabalho/i, /modalidade\s+de\s+trabalho|dura[cç][aã]o\s+da\s+bolsa/i);
+  const modalidadeTrabalho = textoEntre(texto, /modalidade\s+de\s+trabalho/i, /dura[cç][aã]o\s+da\s+bolsa|forma[cç][aã]o\s+necess[aá]ria/i);
+  const tipoBolsa = textoEntre(texto, /tipo\s+de\s+bolsa/i, /n[uú]mero\s+de\s+vagas|cadastro\s+de\s+reserva/i);
+  const formacao = textoEntre(texto, /forma[cç][aã]o\s+necess[aá]ria/i, /requisitos\s+b[aá]sicos|conhecimentos\s+necess[aá]rios/i);
+  const requisitosBasicos = textoEntre(texto, /requisitos\s+b[aá]sicos/i, /conhecimentos\s+necess[aá]rios|habilidades\s+desej[aá]veis|5\.\s*das\s+inscri[cç]/i);
+  return { numeroVagas, cadastroReserva, cargaHoraria, turno: turno?.slice(0, 100) || null, modalidadeTrabalho: modalidadeTrabalho?.slice(0, 100) || null, tipoBolsa: tipoBolsa?.slice(0, 100) || null, formacao: formacao?.slice(0, 400) || null, requisitosBasicos: requisitosBasicos?.slice(0, 700) || null };
+}
+function limparTrechoPdf(texto) {
+  return String(texto || '')
+    .replace(/MINIST[ÉE]RIO[\s\S]{0,350}?www\.imd\.ufrn\.br/gi, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+function extrairExperienciaDaVaga(texto) {
+  const conhecimentosNecessarios = textoEntre(texto, /conhecimentos?\s+necess[aá]rios?/i, /principais\s+atividades\s+a\s+serem\s+executadas|documentos\s+exigidos|perfil\s*\d+/i);
+  const atividadesVaga = textoEntre(texto, /principais\s+atividades\s+a\s+serem\s+executadas/i, /documentos\s+exigidos|perfil\s*\d+/i);
+  return { conhecimentosNecessarios: conhecimentosNecessarios?.slice(0, 2400) || null, atividadesVaga: atividadesVaga?.slice(0, 1500) || null };
+}
+function extrairPerfisVaga(texto) {
+  const marcadores = Array.from(texto.matchAll(/PERFIL\s*\d+\s*[–-]\s*/gi));
+  return marcadores.map((marcador, indice) => {
+    const inicio = marcador.index;
+    const fim = marcadores[indice + 1]?.index || texto.length;
+    const bloco = texto.slice(inicio, fim);
+    const tituloPerfil = limparTrechoPdf(bloco.slice(0, bloco.search(/tipo\s+de\s+bolsa/i))).replace(/^PERFIL\s*\d+\s*[–-]\s*/i, '');
+    const detalhes = extrairDetalhesDaVaga(bloco);
+    const experiencia = extrairExperienciaDaVaga(bloco);
+    return { tituloPerfil: tituloPerfil || `Perfil ${indice + 1}`, ...detalhes, ...experiencia };
+  }).filter((perfil) => perfil.tituloPerfil || perfil.conhecimentosNecessarios || perfil.atividadesVaga);
+}
+function extrairDocumentosInscricao(texto) {
+  return texto.match(/(?:mandat[oó]rio|obrigat[oó]rio)[^.!?]{0,100}documentos?\s*:\s*([\s\S]{0,300}?)(?=5\.2\.|a\s+responsabilidade)/i)?.[1]?.replace(/\s+/g, ' ').trim() || null;
+}
+function extrairEtapasSelecao(texto) {
+  return texto.match(/processo\s+seletivo\s+ser[aá]\s+realizado[^.!?]{0,420}/i)?.[0]?.replace(/\s+/g, ' ').trim() || null;
+}
+function extrairPrevisaoResultado(texto) {
+  const contexto = texto.match(/[\s\S]{0,140}divulga[cç][aã]o\s+do\s+resultado\s+do\s+processo\s+seletivo/i)?.[0] || '';
+  return datasNoTexto(contexto).at(-1) || null;
+}
+function extrairInicioInscricao(texto) {
+  const contexto = texto.match(/(?:inscri[cç](?:[aã]o|[õo]es?))[\s\S]{0,420}/i)?.[0] || '';
+  return datasNoTexto(contexto).at(0) || null;
+}
 async function detalhar(item) {
   const html = await buscar(item.url);
   const textoPagina = limparHtml(html).split(/\bOutros Editais\b/i)[0];
@@ -114,7 +168,14 @@ async function detalhar(item) {
   const anexoPrincipal = anexosComTexto.find((anexo) => anexo.tipo === 'edital' && anexo.texto) || anexosComTexto.find((anexo) => anexo.texto) || null;
   const textoVerdade = anexoPrincipal?.texto || textoPagina;
   const textoComplementar = anexosComTexto.map((anexo) => anexo.texto).filter(Boolean).join(' ');
+  const dataInicioInscricao = extrairInicioInscricao(textoVerdade) || extrairInicioInscricao(textoComplementar);
   const dataFinalInscricao = extrairDataFinalInscricao(textoVerdade) || extrairDataFinalInscricao(textoComplementar);
+  const perfisVaga = extrairPerfisVaga(textoVerdade);
+  const detalhesVaga = perfisVaga[0] || extrairDetalhesDaVaga(textoVerdade);
+  const experienciaVaga = perfisVaga[0] || extrairExperienciaDaVaga(textoVerdade);
+  const documentosInscricao = extrairDocumentosInscricao(textoVerdade);
+  const etapasSelecao = extrairEtapasSelecao(textoVerdade);
+  const previsaoResultado = extrairPrevisaoResultado(textoVerdade);
   const resultadoAnexo = identificarResultadoComLista(anexosComTexto);
   const prazoEncerrado = dataJaPassou(dataFinalInscricao);
   const situacao = dataFinalInscricao
@@ -122,9 +183,10 @@ async function detalhar(item) {
     : (resultadoAnexo ? resultadoAnexo.situacao : 'prazo_a_confirmar');
   const inscricao = extrairInscricao(textoVerdade);
   const requisitos = trecho(textoVerdade, /(?:dos\s+)?requisitos|perfil\s+(?:do\s+)?candidat|poder[aã]o\s+se\s+candidatar|para\s+participar/i);
+  const requisitosEstruturados = detalhesVaga.requisitosBasicos || requisitos;
   const exclusivaUfrn = extrairExclusividadeUfrn(textoVerdade);
   const ehGraduacao = /gradu[aã]c[aã]o|graduando|gradua[cç][aã]o/i.test(`${item.resumo} ${textoVerdade}`);
-  return { ...item, prazo: dataFinalInscricao, dataFinalInscricao, valorVaga: extrairValor(textoVerdade), periodoVaga: extrairPeriodoVaga(textoVerdade), processoSeletivo: extrairProcesso(textoVerdade, item.titulo), periodo: textoPagina.match(/Per[ií]odo\s+do\s+Processo\s*:\s*([0-3]?\d\/\d{2}\/\d{4}\s*-\s*[0-3]?\d\/\d{2}\/\d{4})/i)?.[1] || null, ehGraduacao, exclusivaUfrn, requisitos: requisitos || 'Os requisitos não foram identificados automaticamente; consulte o anexo oficial.', anexos: anexosComTexto.map(({ texto, ...anexo }) => anexo), anexoPrincipal: anexoPrincipal ? { nome: anexoPrincipal.nome, url: anexoPrincipal.url } : null, resultadoUrl: resultadoAnexo?.url || null, situacao, fonteAnexo: anexoPrincipal ? `anexo principal: ${anexoPrincipal.nome}` : 'página pública do edital (sem anexo legível)', ...inscricao, atualizadoEm: new Date().toISOString(), notificacaoId: `${item.id}:${situacao}:${resultadoAnexo?.url || dataFinalInscricao || 'sem-data'}` };
+  return { ...item, prazo: dataFinalInscricao, dataInicioInscricao, dataFinalInscricao, valorVaga: extrairValor(textoVerdade), periodoVaga: extrairPeriodoVaga(textoVerdade), documentosInscricao, etapasSelecao, previsaoResultado, perfisVaga, ...experienciaVaga, ...detalhesVaga, processoSeletivo: extrairProcesso(textoVerdade, item.titulo), periodo: textoPagina.match(/Per[ií]odo\s+do\s+Processo\s*:\s*([0-3]?\d\/\d{2}\/\d{4}\s*-\s*[0-3]?\d\/\d{2}\/\d{4})/i)?.[1] || null, ehGraduacao, exclusivaUfrn, requisitos: requisitosEstruturados || 'Os requisitos não foram identificados automaticamente; consulte o anexo oficial.', anexos: anexosComTexto.map(({ texto, ...anexo }) => anexo), anexoPrincipal: anexoPrincipal ? { nome: anexoPrincipal.nome, url: anexoPrincipal.url } : null, resultadoUrl: resultadoAnexo?.url || null, situacao, fonteAnexo: anexoPrincipal ? `anexo principal: ${anexoPrincipal.nome}` : 'página pública do edital (sem anexo legível)', ...inscricao, atualizadoEm: new Date().toISOString(), notificacaoId: `${item.id}:${situacao}:${resultadoAnexo?.url || dataFinalInscricao || 'sem-data'}` };
 }
 async function listarEditais({ force = false } = {}) {
   if (!force && cache && Date.now() - cache.at < CACHE_MS) return cache.data;
@@ -134,16 +196,4 @@ async function listarEditais({ force = false } = {}) {
   cache = { at: Date.now(), data }; return data;
 }
 module.exports = { listarEditais, EDITAIS_URL };
-
-
-
-
-
-
-
-
-
-
-
-
 
