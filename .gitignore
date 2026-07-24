@@ -1,0 +1,5 @@
+api/node_modules/
+api/data/subscriptions.json
+api/.env
+
+api/data/whatsapp-session/
