@@ -1,80 +1,139 @@
 <!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0e4b3f">
-  <title>AutoVagas</title>
-  <link rel="stylesheet" href="/stylesheets/style.css">
-</head>
-<body>
-  <main class="container">
-    <header class="hero">
-      <span class="eyebrow">AUTOVAGAS</span>
-      <h1>Encontre a próxima oportunidade no lugar certo.</h1>
-      <p>Uma central para acompanhar vagas, editais e bolsas de fontes que você confia.</p>
-    </header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0e4b3f" />
+    <title>AutoVagas</title>
+    <link rel="stylesheet" href="/stylesheets/style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="hero">
+        <span class="eyebrow">AUTOVAGAS</span>
+        <h1>Encontre a próxima oportunidade no lugar certo.</h1>
+        <p>Uma central para acompanhar vagas, editais e bolsas de fontes que você confia.</p>
+      </header>
 
-    <section class="sources" aria-labelledby="sources-title">
-      <div class="section-heading"><div><span class="eyebrow">ESCOLHA UMA FONTE</span><h2 id="sources-title">Onde você quer buscar?</h2></div></div>
-      <p class="muted">Por enquanto, analisamos os editais do IMD. As próximas fontes já estão no radar.</p>
-      <div id="source-options" class="source-options" aria-live="polite"></div>
-    </section>
+      <section class="sources" aria-labelledby="sources-title">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">ESCOLHA UMA FONTE</span>
+            <h2 id="sources-title">Onde você quer buscar?</h2>
+          </div>
+        </div>
+        <p class="muted">Por enquanto, analisamos os editais do IMD. As próximas fontes já estão no radar.</p>
+        <div id="source-options" class="source-options" aria-live="polite"></div>
+      </section>
 
-    <section class="layout">
-      <form id="signup-form" class="panel" novalidate>
-        <h2>Ative seus alertas</h2>
-        <p class="muted">Você receberá somente vagas da fonte escolhida e pode cancelar quando quiser.</p>
-        <label>Nome
-          <input name="nome" autocomplete="name" required minlength="2" placeholder="Como podemos chamar você?">
-        </label>
-        <label>WhatsApp com DDD
-          <input name="telefone" autocomplete="tel" inputmode="tel" required placeholder="(84) 99999-9999">
-        </label>
-        <p class="selected-source">Fonte selecionada: <strong id="selected-source-name">IMD / UFRN</strong></p>
-        <label class="check"><input name="somenteGraduacao" type="checkbox"> Quero receber apenas vagas de graduação</label>
-        <label class="check consent"><input name="consentimento" type="checkbox" required> Autorizo o armazenamento do meu cadastro e o recebimento de mensagens pelo WhatsApp. Posso cancelar quando quiser.</label>
-        <button type="submit">Ativar alertas desta fonte</button>
-        <p id="form-message" class="message" role="status"></p>
-      </form>
+      <section class="layout">
+        <form id="signup-form" class="panel" novalidate>
+          <h2>Ative seus alertas</h2>
+          <p class="muted">Você receberá somente vagas da fonte escolhida e pode cancelar quando quiser.</p>
+          <label
+            >Nome
+            <input
+              name="nome"
+              autocomplete="name"
+              required
+              minlength="2"
+              placeholder="Como podemos chamar você?"
+            />
+          </label>
+          <label
+            >WhatsApp com DDD
+            <input
+              name="telefone"
+              autocomplete="tel"
+              inputmode="tel"
+              required
+              placeholder="(84) 99999-9999"
+            />
+          </label>
+          <p class="selected-source">
+            Fonte selecionada: <strong id="selected-source-name">IMD / UFRN</strong>
+          </p>
+          <label class="check"
+            ><input name="somenteGraduacao" type="checkbox" /> Quero receber apenas vagas de graduação</label
+          >
+          <label class="check consent"
+            ><input name="consentimento" type="checkbox" required /> Autorizo o armazenamento do meu cadastro
+            e o recebimento de mensagens pelo WhatsApp. Posso cancelar quando quiser.</label
+          >
+          <button type="submit">Ativar alertas desta fonte</button>
+          <p id="form-message" class="message" role="status"></p>
+        </form>
 
-      <aside class="how-it-works">
-        <span>01</span><p>Você escolhe uma fonte de oportunidades.</p>
-        <span>02</span><p>Organizamos as vagas e destacamos o que é importante.</p>
-        <span>03</span><p>Quando houver algo novo, o bot avisa no WhatsApp.</p>
-      </aside>
-    </section>
+        <aside class="how-it-works">
+          <span>01</span>
+          <p>Você escolhe uma fonte de oportunidades.</p>
+          <span>02</span>
+          <p>Organizamos as vagas e destacamos o que é importante.</p>
+          <span>03</span>
+          <p>Quando houver algo novo, o bot avisa no WhatsApp.</p>
+        </aside>
+      </section>
 
-    <section class="vacancies" aria-labelledby="vacancies-title">
-      <div class="section-heading"><div><span class="eyebrow" id="vacancies-eyebrow">IMD / UFRN</span><h2 id="vacancies-title">Vagas em destaque</h2></div><button id="refresh" class="secondary" type="button">Atualizar</button></div>
-      <div class="filter-toolbar">
-  <button id="toggle-filters" class="filter-toggle" type="button" aria-expanded="false" aria-controls="filter-panel">Filtros <span id="filter-count">0</span></button>
-  <span id="filter-summary" class="filter-summary">Mostrando todas as vagas</span>
-</div>
-<section id="filter-panel" class="filter-panel" hidden aria-label="Filtros de vagas">
-  <div class="filter-section">
-    <span class="filter-label">Etapa do edital</span>
-    <label><input id="filter-open" type="checkbox"> Editais em aberto</label>
-    <label><input id="filter-result" type="checkbox"> Com resultado publicado</label>
-    <label><input id="filter-waiting" type="checkbox"> Aguardando resultados parciais</label>
-  </div>
-  <div class="filter-section">
-    <span class="filter-label">Condições</span>
-    <label><input id="filter-deadline" type="checkbox"> Inscrição ainda no prazo</label><label><input id="filter-attachment-data" type="checkbox"> Somente com dados do anexo</label>
-    <div class="institution-filter"><span>Instituição</span><label><input id="filter-institution-all" name="institution" type="radio" value="all" checked> Todas</label><label><input name="institution" type="radio" value="exclusive"> Exclusiva UFRN</label><label><input name="institution" type="radio" value="other"> Aberta a outras instituições</label></div>
-    <label class="value-filter">Valor mínimo (R$)<input id="filter-value" type="number" min="0" step="50" placeholder="Ex.: 700"></label>
-  </div>
-  <div class="filter-actions"><button id="clear-filters" class="secondary" type="button">Limpar filtros</button><button id="apply-filters" type="button">Ver vagas</button></div>
-</section>      <p id="loading" class="muted">Consultando as vagas…</p>
-      <div id="cards" class="cards"></div>
-    </section>
-  </main>
-  <footer>AutoVagas não substitui a leitura do edital e de seus anexos oficiais.</footer>
-  <script src="/app.js"></script>
-</body>
+      <section class="vacancies" aria-labelledby="vacancies-title">
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow" id="vacancies-eyebrow">IMD / UFRN</span>
+            <h2 id="vacancies-title">Vagas em destaque</h2>
+          </div>
+          <button id="refresh" class="secondary" type="button">Atualizar</button>
+        </div>
+        <div class="filter-toolbar">
+          <button
+            id="toggle-filters"
+            class="filter-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="filter-panel"
+          >
+            Filtros <span id="filter-count">0</span>
+          </button>
+          <span id="filter-summary" class="filter-summary">Mostrando todas as vagas</span>
+        </div>
+        <section id="filter-panel" class="filter-panel" hidden aria-label="Filtros de vagas">
+          <div class="filter-section">
+            <span class="filter-label">Etapa do edital</span>
+            <label><input id="filter-open" type="checkbox" /> Editais em aberto</label>
+            <label><input id="filter-result" type="checkbox" /> Com resultado publicado</label>
+            <label><input id="filter-waiting" type="checkbox" /> Aguardando resultados parciais</label>
+          </div>
+          <div class="filter-section">
+            <span class="filter-label">Condições</span>
+            <label><input id="filter-deadline" type="checkbox" /> Inscrição ainda no prazo</label
+            ><label><input id="filter-attachment-data" type="checkbox" /> Somente com dados do anexo</label>
+            <div class="institution-filter">
+              <span>Instituição</span
+              ><label
+                ><input id="filter-institution-all" name="institution" type="radio" value="all" checked />
+                Todas</label
+              ><label><input name="institution" type="radio" value="exclusive" /> Exclusiva UFRN</label
+              ><label
+                ><input name="institution" type="radio" value="other" /> Aberta a outras instituições</label
+              >
+            </div>
+            <label class="value-filter"
+              >Valor mínimo (R$)<input
+                id="filter-value"
+                type="number"
+                min="0"
+                step="50"
+                placeholder="Ex.: 700"
+            /></label>
+          </div>
+          <div class="filter-actions">
+            <button id="clear-filters" class="secondary" type="button">Limpar filtros</button
+            ><button id="apply-filters" type="button">Ver vagas</button>
+          </div>
+        </section>
+        <p id="loading" class="muted">Consultando as vagas…</p>
+        <div id="cards" class="cards"></div>
+      </section>
+    </main>
+    <footer>AutoVagas não substitui a leitura do edital e de seus anexos oficiais.</footer>
+    <script src="/app.js"></script>
+  </body>
 </html>
-
-
-
-
-

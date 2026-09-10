@@ -7,22 +7,22 @@ const sources = [
     descricao: 'Editais, bolsas e vagas acadêmicas do Instituto Metrópole Digital.',
     url: imd.EDITAIS_URL,
     status: 'disponivel',
-    listar: imd.listarEditais
+    listar: imd.listarEditais,
   },
   {
     id: 'jerimum',
     nome: 'Jerimum Jobs',
     descricao: 'Vagas e oportunidades do ecossistema de tecnologia do RN.',
     url: 'https://jerimumjobs.imd.ufrn.br/',
-    status: 'em-breve'
+    status: 'em-breve',
   },
   {
     id: 'linkedin',
     nome: 'LinkedIn',
     descricao: 'Oportunidades profissionais e estágios.',
     url: 'https://www.linkedin.com/jobs/',
-    status: 'em-breve'
-  }
+    status: 'em-breve',
+  },
 ];
 
 function fontesPublicas() {
@@ -36,9 +36,15 @@ function obterFonte(id) {
 async function consultarFonte(id, options) {
   const source = obterFonte(id);
   if (!source) throw new Error('Fonte de vagas não encontrada.');
-  if (source.status !== 'disponivel' || !source.listar) throw new Error(`${source.nome} ainda está em preparação.`);
+  if (source.status !== 'disponivel' || !source.listar)
+    throw new Error(`${source.nome} ainda está em preparação.`);
   const vagas = await source.listar(options);
-  return vagas.map((vaga) => ({ ...vaga, fonteId: source.id, fonteNome: source.nome, uid: `${source.id}:${vaga.id}` }));
+  return vagas.map((vaga) => ({
+    ...vaga,
+    fonteId: source.id,
+    fonteNome: source.nome,
+    uid: `${source.id}:${vaga.id}`,
+  }));
 }
 
 async function listarTodas(options) {
@@ -48,4 +54,3 @@ async function listarTodas(options) {
 }
 
 module.exports = { fontesPublicas, consultarFonte, listarTodas, obterFonte };
-

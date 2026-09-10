@@ -30,7 +30,7 @@ async function cadastrar({ nome, telefone, fontes, somenteGraduacao, consentimen
   if (!nome || String(nome).trim().length < 2) throw new Error('Informe seu nome.');
   if (consentimento !== true) throw new Error('É necessário autorizar o recebimento de alertas.');
 
-  const fontesEscolhidas = Array.isArray(fontes) ? fontes : (fontes ? [fontes] : ['imd']);
+  const fontesEscolhidas = Array.isArray(fontes) ? fontes : fontes ? [fontes] : ['imd'];
   const fontesValidas = fontesEscolhidas.filter((fonte) => fonte === 'imd');
   if (!fontesValidas.length) throw new Error('Escolha pelo menos uma fonte disponível.');
   const whatsapp = normalizarTelefone(telefone);
@@ -47,7 +47,7 @@ async function cadastrar({ nome, telefone, fontes, somenteGraduacao, consentimen
     ativo: true,
     criadoEm: previous?.criadoEm || now,
     atualizadoEm: now,
-    editaisEnviados: previous?.editaisEnviados || []
+    editaisEnviados: previous?.editaisEnviados || [],
   };
   await salvar([...items.filter((item) => item.whatsapp !== whatsapp), subscription]);
   return subscription;
@@ -73,4 +73,3 @@ async function cancelar(subscriptionId) {
 }
 
 module.exports = { cadastrar, listar, marcarEnviados, cancelar };
-

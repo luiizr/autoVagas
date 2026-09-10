@@ -1,0 +1,67 @@
+<div class="container">
+  <header class="hero">
+    <span class="eyebrow">AUTOVAGAS</span>
+    <h1>Encontre a próxima oportunidade no lugar certo.</h1>
+    <p>Uma central para acompanhar vagas, editais e bolsas de fontes que você confia.</p>
+  </header>
+
+  <section class="sources" aria-labelledby="sources-title">
+    <span class="eyebrow">ESCOLHA UMA FONTE</span>
+    <h2 id="sources-title">Onde você quer buscar?</h2>
+    <p class="muted">Comece pelos editais e bolsas do IMD. Novas fontes chegarão em seguida.</p>
+    <div class="source-options" aria-live="polite">
+      @if (loadingSources) {
+        <p class="muted">Carregando fontes…</p>
+      }
+      @for (source of sources; track source.id) {
+        <button
+          type="button"
+          class="source-option"
+          [class.selected]="source.id === selectedSource"
+          [disabled]="source.status !== 'disponivel'"
+          (click)="selectSource(source)"
+        >
+          <span class="source-status">{{ source.status === 'disponivel' ? 'DISPONÍVEL' : 'EM BREVE' }}</span>
+          <strong>{{ source.nome }}</strong>
+          <small>{{ source.descricao }}</small>
+          <span class="source-action">{{ source.status === 'disponivel' ? 'Ver vagas →' : 'Integração em preparação' }}</span>
+        </button>
+      }
+    </div>
+  </section>
+
+  <section class="layout">
+    <form class="panel" [formGroup]="alertForm" (ngSubmit)="submitAlerts()" novalidate>
+      <h2>Ative seus alertas</h2>
+      <p>Você receberá somente vagas da fonte escolhida e pode cancelar quando quiser.</p>
+      <label>Nome<input formControlName="nome" autocomplete="name" placeholder="Como podemos chamar você?" /></label>
+      <label>WhatsApp com DDD<input formControlName="telefone" autocomplete="tel" inputmode="tel" placeholder="(84) 99999-9999" /></label>
+      <p class="selected-source">Fonte selecionada: <strong>{{ selectedSourceName }}</strong></p>
+      <label class="check"><input type="checkbox" formControlName="somenteGraduacao" /> Quero receber apenas vagas de graduação</label>
+      <label class="check consent"><input type="checkbox" formControlName="consentimento" /> Autorizo o armazenamento do meu cadastro e o recebimento de mensagens pelo WhatsApp.</label>
+      <button type="submit">Ativar alertas desta fonte</button>
+      @if (alertMessage) { <p class="message">{{ alertMessage }}</p> }
+      <p class="account-link">Já possui conta? Use o botão <strong>Entrar</strong> no menu.</p>
+    </form>
+    <aside class="how-it-works"><span>01</span><p>Você escolhe uma fonte de oportunidades.</p><span>02</span><p>Organizamos as vagas e destacamos o que é importante.</p><span>03</span><p>Quando houver algo novo, o bot avisa no WhatsApp.</p></aside>
+  </section>
+
+  <section class="vacancies" aria-labelledby="vacancies-title">
+    <div class="section-heading"><div><span class="eyebrow">{{ selectedSourceName }}</span><h2 id="vacancies-title">Vagas em destaque</h2></div><button type="button" class="secondary" (click)="loadVacancies(true)" [disabled]="loadingVacancies">Atualizar</button></div>
+    <div class="filter-toolbar">
+      <button type="button" class="filter-toggle" [class.is-open]="filtersOpen" [attr.aria-expanded]="filtersOpen" (click)="filtersOpen = !filtersOpen">Filtros <span>{{ activeFilterCount }}</span><b>⌄</b></button>
+      <span class="filter-summary">{{ filteredVacancies.length }} vaga{{ filteredVacancies.length === 1 ? '' : 's' }} encontrada{{ filteredVacancies.length === 1 ? '' : 's' }}</span>
+    </div>
+    @if (filtersOpen) {
+      <div class="filter-panel">
+        <div class="filter-section"><span>ETAPA DO EDITAL</span><label><input type="checkbox" [(ngModel)]="filters.open" [ngModelOptions]="{standalone:true}" /> Editais em aberto</label><label><input type="checkbox" [(ngModel)]="filters.result" [ngModelOptions]="{standalone:true}" /> Com resultado publicado</label><label><input type="checkbox" [(ngModel)]="filters.waiting" [ngModelOptions]="{standalone:true}" /> Aguardando resultados</label></div>
+        <div class="filter-section"><span>CONDIÇÕES</span><label><input type="checkbox" [(ngModel)]="filters.deadline" [ngModelOptions]="{standalone:true}" /> Inscrição ainda no prazo</label><label><input type="checkbox" [(ngModel)]="filters.attachmentData" [ngModelOptions]="{standalone:true}" /> Somente com dados do anexo</label><div class="institution-filter"><em>Instituição</em><label><input type="radio" value="all" [(ngModel)]="filters.institution" [ngModelOptions]="{standalone:true}" /> Todas</label><label><input type="radio" value="exclusive" [(ngModel)]="filters.institution" [ngModelOptions]="{standalone:true}" /> Exclusiva UFRN</label><label><input type="radio" value="other" [(ngModel)]="filters.institution" [ngModelOptions]="{standalone:true}" /> Aberta a outras instituições</label></div><label class="value-filter">Valor mínimo (R$)<input type="number" min="0" step="50" [(ngModel)]="filters.value" [ngModelOptions]="{standalone:true}" /></label></div>
+        <div class="filter-actions"><button type="button" class="secondary" (click)="clearFilters()">Limpar filtros</button><button type="button" (click)="filtersOpen = false">Ver vagas</button></div>
+      </div>
+    }
+    @if (loadingVacancies) { <p class="muted">Consultando as vagas do IMD…</p> }
+    @if (vacancyError) { <div class="empty-state"><strong>Não foi possível consultar as vagas.</strong><span>{{ vacancyError }}</span><button type="button" class="secondary" (click)="loadVacancies(true)">Tentar novamente</button></div> }
+    @if (!loadingVacancies && !vacancyError && filteredVacancies.length) { <div class="cards">@for (vacancy of filteredVacancies; track vacancy.id) {<article class="card"><div class="badges"><span>{{ vacancy.situacao?.replaceAll('_', ' ') || 'INSCRIÇÕES ABERTAS' }}</span>@if (vacancy.ehGraduacao) {<span>GRADUAÇÃO</span>}@if (vacancy.exclusivaUfrn) {<span>EXCLUSIVA UFRN</span>}</div><h3>{{ vacancy.titulo }}</h3><dl><div><dt>Inscrições</dt><dd>{{ vacancy.dataFinalInscricao || 'Consulte o edital' }}</dd></div><div><dt>Valor da vaga</dt><dd>{{ vacancy.valorVaga || 'Não informado' }}</dd></div><div><dt>Inscrição</dt><dd>{{ vacancy.formaInscricao || 'Consulte o edital' }}</dd></div></dl><p class="requirements">{{ vacancy.requisitos }}</p><a [href]="vacancy.url" target="_blank" rel="noopener">Edital oficial ↗</a></article>}</div> }
+    @if (!loadingVacancies && !vacancyError && !filteredVacancies.length) { <div class="empty-state"><strong>Nenhuma vaga encontrada.</strong><span>Ajuste ou limpe os filtros para ver outras oportunidades.</span></div> }
+  </section>
+</div>

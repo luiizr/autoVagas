@@ -3,3 +3,7 @@ api/data/subscriptions.json
 api/.env
 
 api/data/whatsapp-session/
+api/dist/
+api/node_modules/
+web/node_modules/
+web/dist/

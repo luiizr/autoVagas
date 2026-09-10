@@ -3,19 +3,45 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint src test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "start": "node --use-system-ca dist/main/server.js",
+    "dev": "node --use-system-ca node_modules/tsx/dist/cli.mjs watch src/main/server.ts",
+    "test": "vitest run",
+    "migrate": "tsx src/infrastructure/database/migrate.ts"
   },
   "dependencies": {
     "@whiskeysockets/baileys": "^7.0.0-rc13",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
-    "express": "~4.16.1",
-    "morgan": "~1.9.1",
+    "bcryptjs": "^2.4.3",
+    "cheerio": "^1.1.2",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.12.0",
     "pdf-parse": "^1.1.1",
-    "qrcode-terminal": "^0.12.0"
+    "pg": "^8.16.3",
+    "qrcode-terminal": "^0.12.0",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@eslint/js": "^10.0.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.15.3",
+    "@types/pg": "^8.23.1",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "prettier-plugin-sql": "^0.20.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^3.2.4"
   }
 }

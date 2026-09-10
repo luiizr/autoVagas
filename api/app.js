@@ -15,23 +15,28 @@ app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.get('/health', function(req, res) { res.status(200).json({ status: 'ok' }); });
+app.get('/health', function (req, res) {
+  res.status(200).json({ status: 'ok' });
+});
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/api', apiRouter);
 
 if (process.env.WHATSAPP_BOT_ENABLED === 'true') {
-  whatsapp.iniciarBot().catch(function (error) { console.error('Não foi possível iniciar o bot WhatsApp:', error.message); });
+  whatsapp.iniciarBot().catch(function (error) {
+    console.error('Não foi possível iniciar o bot WhatsApp:', error.message);
+  });
 }
 
 var pollingMinutes = Number(process.env.EDITAIS_POLL_MINUTES || 0);
 if (Number.isFinite(pollingMinutes) && pollingMinutes >= 5) {
   var delay = pollingMinutes * 60 * 1000;
   setInterval(function () {
-    apiRouter.atualizarNotificacoes().catch(function (error) { console.error('Falha na rotina de editais:', error.message); });
+    apiRouter.atualizarNotificacoes().catch(function (error) {
+      console.error('Falha na rotina de editais:', error.message);
+    });
   }, delay).unref();
 }
 
 module.exports = app;
-

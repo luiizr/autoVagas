@@ -10,6 +10,8 @@ npm install
 npm start
 ```
 
+O comando também funciona se você ainda usar `node bin/www`: o bootstrap legado se reinicia com os certificados do Windows para validar o HTTPS do portal do IMD.
+
 Abra `http://localhost:3000`.
 
 ## Configuração do WhatsApp

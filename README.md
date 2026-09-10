@@ -1,31 +1,21 @@
-# AutoVagas IMD
+# AutoVagas
 
-MVP para consultar os editais em andamento no portal público do IMD/UFRN, resumir página e anexos PDF e alertar pessoas cadastradas via WhatsApp.
+Plataforma para descobrir vagas automaticamente, organizada em Angular (`web/`) e Express + TypeScript + PostgreSQL (`api/`). A identidade visual do MVP foi preservada, enquanto a base passou a incluir autenticação e integrações por conta.
 
-## Rodar
+## Primeira execução
 
-```bash
-cd api
-npm install
-$env:WHATSAPP_BOT_ENABLED = "true"
-$env:EDITAIS_POLL_MINUTES = "60"
-npm start
-```
+1. Crie um banco PostgreSQL chamado `autovagas`.
+2. Copie `api/.env.example` para `api/.env` e informe uma `DATABASE_URL` e um `JWT_SECRET` longo.
+3. Em `api/`, execute `npm install`, `npm run migrate` e `npm run dev`. Em Node.js 22, os scripts — incluindo o bootstrap legado `node bin/www` — usam o repositório de certificados do sistema para acessar o portal do IMD com HTTPS validado.
+4. Em outro terminal, em `web/`, execute `npm install` e `npm start`.
 
-Abra `http://localhost:3000`. No primeiro uso, será exibido um QR Code no terminal. Escaneie-o com o número dedicado ao bot em **WhatsApp > Aparelhos conectados**. A sessão fica em `api/data/whatsapp-session`, que não deve ser versionada ou compartilhada.
+Abra `http://localhost:4200`. A API fica em `http://localhost:3000/api`.
 
-## Como o bot envia
+## Arquitetura
 
-A conexão usa a biblioteca Baileys, que interage com o WhatsApp Web por QR Code. Assim que está conectado, o sistema envia uma mensagem de texto por edital ao número cadastrado. Não há token, template ou conta da WhatsApp Cloud API.
+- A lista de vagas é pública; login/cadastro usam senha hasheada e JWT.
+- Configurações protegidas preparam a conexão WhatsApp vinculada à conta autenticada.
+- O crawler Jerimum Jobs descobre URLs a partir da listagem, usa HTTP + Cheerio e regras determinísticas; snapshots SHA-256 impedem reprocessamento desnecessário.
+- As migrations PostgreSQL ficam isoladas por entidade em `api/src/infrastructure/database/migrations`.
 
-> Esta é uma integração não oficial. Use um número exclusivo para o bot, obtenha consentimento das pessoas cadastradas, evite disparos em massa e esteja ciente de que alterações no WhatsApp Web ou suas regras podem interromper a conexão ou restringir o número.
-
-## Endpoints
-
-- `GET /api/editais`: consulta os editais em andamento.
-- `GET /api/status`: informa o estado do bot.
-- `POST /api/inscricoes`: cria/atualiza um cadastro com consentimento.
-- `DELETE /api/inscricoes/:id`: interrompe os alertas.
-- `POST /api/admin/atualizar-notificacoes`: dispara a checagem manual (header `x-api-key`).
-
-Os dados vêm de [Editais do IMD](https://www.imd.ufrn.br/portal/editais). A síntese é automática e não substitui a leitura do edital e de seus anexos oficiais.
+Os documentos de contexto na raiz explicam as convenções permanentes. Rode `npm run build` e `npm test` dentro de `api/`, e `npm run build` dentro de `web/` antes de publicar.

@@ -1,0 +1,1 @@
+import { Component, input } from '@angular/core'; import { RouterLink } from '@angular/router'; import type { Job } from '../../models/job.model'; @Component({selector:'av-job-card',imports:[RouterLink],templateUrl:'./job-card.component.html',styleUrl:'./job-card.component.scss'}) export class JobCardComponent {readonly job=input.required<Job>();}

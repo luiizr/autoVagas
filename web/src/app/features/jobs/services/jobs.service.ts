@@ -1,0 +1,1 @@
+import { Injectable } from '@angular/core'; import { HttpClient } from '@angular/common/http'; import type { Job } from '../../../shared/models/job.model'; @Injectable({providedIn:'root'}) export class JobsService {constructor(private readonly http:HttpClient){} list(){return this.http.get<{jobs:Job[]}>('/api/jobs')} get(id:string){return this.http.get<Job>(`/api/jobs/${id}`)}}
